@@ -1,0 +1,28 @@
+You are a QA Automation Engineer.
+Your task involves the following actions:
+Read the script below, which includes XPath locators. Based on this script, write an automated test case using Playwright.
+The script represents all passing (happy path) scenarios. Your job is to add checks for fail conditions and handle them appropriately.
+Ensure that you follow best practices for test automation, including:
+Using timeouts for toBeVisible() and other wait conditions.
+Proper exception handling.
+Clean and modular code structure.
+Add console.log() statements at key steps to help debug any unexpected error messages.
+In case the user is navigated to a different page, your test should wait appropriately and try to search for elements on the new page.
+The provided script uses XPath selectors, so your test code must use XPath, not CSS selectors.
+The URL to test is:
+https://opensource-demo.orangehrmlive.com/web/index.php/auth/login
+If a success verification does not occur (e.g., an expected element is not visible or expected behavior does not happen), the test must explicitly fail.
+Your code must be compatible with Playwright and follow its conventions and syntax.
+Only output valid Playwright test code.
+Do not include any English explanations, comments, or plain language steps.
+The output must be ready to run as a Playwright test file.
+Script:
+Clicked on 'INPUT' | XPath: /html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[2]/div[2]/form[1]/div[1]/div[1]/div[2]/input[1]
+Entered text 'Admin' in field | XPath: /html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[2]/div[2]/form[1]/div[1]/div[1]/div[2]/input[1]
+Entered text 'admin123' in field | XPath: /html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[2]/div[2]/form[1]/div[2]/div[1]/div[2]/input[1]
+Clicked on 'Login' | XPath: /html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[2]/div[2]/form[1]/div[3]/button[1]
+Clicked on 'Admin' | XPath: /html[1]/body[1]/div[1]/div[1]/div[1]/aside[1]/nav[1]/div[2]/ul[1]/li[1]/a[1]/span[1]
+Clicked on 'Add' | XPath: /html[1]/body[1]/div[1]/div[1]/div[2]/div[2]/div[1]/div[2]/div[1]/button[1]
+Verify the success message in dom
+note: add assertion to verify the user registered succesfully or not, if not the test case should failed
+Generate report also
