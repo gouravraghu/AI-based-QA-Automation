@@ -1,32 +1,49 @@
 console.log("✅ Action Tracker Content Script Loaded!");
 
-// Queue to maintain correct action sequence
+let shouldLog = false;
 let actionsQueue = [];
 
-// Load previous actions from storage when the page loads
-chrome.storage.local.get({ actions: [] }, (data) => {
+chrome.storage.local.get(["actions", "shouldLog"], (data) => {
     actionsQueue = data.actions || [];
-    console.log("🔄 Previous actions loaded:", actionsQueue.length);
+    shouldLog = data.shouldLog || false;
+    console.log("🔄 Loaded previous actions:", actionsQueue.length, "| Logging:", shouldLog);
 });
 
-// Store actions in storage while maintaining the correct order
-function saveAction(action) {
-    actionsQueue.push(action); // Maintain order
 
-    chrome.storage.local.set({ actions: actionsQueue }, () => {
-        console.log(`Saved: ${action}`);
-    });
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === "startLogging") {
+        shouldLog = true;
+        actionsQueue = [];
+        debugger
+        chrome.storage.local.set({ shouldLog: true });
+        console.log("🚀 Logging started");
+        sendResponse({ status: "Logging enabled" });
+    }
+});
+
+function saveAction(action) {
+    if (!shouldLog) return;
+
+    try {
+        actionsQueue.push(action);
+        chrome.storage.local.set({ actions: actionsQueue }, () => {
+            if (chrome.runtime.lastError) {
+                console.warn("Storage error:", chrome.runtime.lastError.message);
+            } else {
+                console.log(`💾 Saved: ${action}`);
+            }
+        });
+    } catch (e) {
+        console.error("Caught error during saveAction:", e);
+    }
 }
 
-// Function to get XPath of an element
 function getExactXPath(element) {
     if (!element || element.nodeType !== 1) return '';
-
     if (["li", "div"].includes(element.tagName.toLowerCase())) {
         let anchor = element.querySelector("a");
         if (anchor) return getExactXPath(anchor);
     }
-
     if (element.id) return `//*[@id="${element.id}"]`;
 
     const parts = [];
@@ -44,17 +61,14 @@ function getExactXPath(element) {
     return '/' + parts.join('/');
 }
 
-// Capture user actions
 document.addEventListener("click", function (event) {
     let element = event.target;
     let xpath = getExactXPath(element);
     if (!xpath) return;
-
     let actionText = `Clicked on '${element.innerText?.trim() || element.tagName}' | XPath: ${xpath}`;
     saveAction(actionText);
 }, true);
 
-// Capture text input
 document.addEventListener("blur", function (event) {
     let element = event.target;
     if (!["input", "textarea"].includes(element.tagName.toLowerCase())) return;
@@ -67,7 +81,6 @@ document.addEventListener("blur", function (event) {
     saveAction(actionText);
 }, true);
 
-// Capture dropdown selections
 document.addEventListener("change", function (event) {
     let element = event.target;
     if (element.tagName.toLowerCase() !== "select") return;

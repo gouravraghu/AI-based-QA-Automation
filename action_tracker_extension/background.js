@@ -6,7 +6,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 const actions = data.actions || [];
 
                 if (actions.length === 0) {
-                    sendResponse({ status: "No actions to download" });
+                    sendResponse({ status: "No actions to download." });
                     return;
                 }
 
@@ -27,14 +27,30 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 sendResponse({ status: "Error: " + err.message });
             }
         })();
-
-        return true; 
+       
+        return true;
     }
-
+    
     if (request.action === "clearLogs") {
-        chrome.storage.local.set({ actions: [] }, () => {
-            sendResponse({ status: "Logs cleared successfully." });
+       debugger
+        chrome.storage.local.remove(["actions", "shouldLog"], () => {
+            if (chrome.runtime.lastError) {
+                console.error("Error clearing logs:", chrome.runtime.lastError.message);
+                sendResponse({ status: "Error clearing logs." });
+            } else {
+                console.log("Logs and flag cleared");
+                sendResponse({ status: "Logs cleared successfully." });
+            }
         });
+
+   debugger
         return true;
     }
 });
+
+//This code is load a web page content when extension is install
+chrome.runtime.onInstalled.addListener(() => {
+    chrome.tabs.create({
+      url: chrome.runtime.getURL("index.html")
+    });
+  });
