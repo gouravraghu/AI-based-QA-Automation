@@ -4,7 +4,8 @@
   "main": "QA_automation.js",
   "scripts": {
     "start": "node QA_automation.js",
-    "postinstall": "npx playwright install --with-deps"
+    "postinstall": "npx playwright install --with-deps",
+    "prepare": "chmod -R 755 node_modules/.bin || true"
   },
   "dependencies": {
     "axios": "^1.6.0",
