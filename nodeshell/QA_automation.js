@@ -1,6 +1,7 @@
 const fs = require('fs');
 const axios = require('axios');
 const { execSync } = require('child_process');
+const express = require('express');
 
 // Replace this with your actual Gist raw file URL
 const gistRawUrl = 'https://gist.githubusercontent.com/hjain27/c7ab30d45c1d93e206404bd316c0e7c7/raw/Promt1.txt';
@@ -66,3 +67,10 @@ axios.get(gistRawUrl)
   .catch(error => {
     console.error('Failed to fetch prompt from Gist:', error.message);
   });
+
+// Minimal Express server to keep the service alive for Render.com
+const app = express();
+const PORT = process.env.PORT || 10000;
+
+app.get('/', (req, res) => res.send('Playwright automation running!'));
+app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
