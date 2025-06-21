@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "QA_automation.js",
   "scripts": {
-    "start": "node QA_automation.js"
+    "start": "node QA_automation.js",
+    "postinstall": "npx playwright install --with-deps"
   },
   "dependencies": {
     "axios": "^1.6.0",
