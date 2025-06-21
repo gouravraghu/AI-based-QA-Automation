@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Action Tracker - Chrome Extension Documentation</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <header class="header">
+            <div class="logo-section">
+                <i class="fas fa-robot ai-icon"></i>
+                <h1 class="title">Action Tracker</h1>
+                <span class="subtitle">AI-Powered QA Automation for Chrome</span>
+            </div>
+            <div class="hero-description">
+                <p>Revolutionize your testing workflow with intelligent web operation tracking and automated Playwright test case generation</p>
+            </div>
+        </header>
+
+        <!-- About Section -->
+        <section class="about-section">
+            <h2><i class="fas fa-info-circle"></i> About Action Tracker</h2>
+            <div class="description-card">
+                <p>Action Tracker is an innovative Chrome extension designed specifically for QA Engineers to streamline automation testing processes. The extension intelligently tracks all web operations performed by users, automatically generates precise XPath selectors, and leverages AI technology to create comprehensive Playwright test cases in TypeScript.</p>
+                
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <i class="fas fa-search-plus"></i>
+                        <h4>Smart Operation Tracking</h4>
+                        <p>Automatically captures every user interaction on web applications</p>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-code"></i>
+                        <h4>XPath Generation</h4>
+                        <p>Generates robust and reliable XPath selectors for each tracked element</p>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-brain"></i>
+                        <h4>AI-Powered Code Generation</h4>
+                        <p>Transforms tracked operations into professional Playwright test cases</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Installation Section -->
+        <section class="installation-section">
+            <h2><i class="fas fa-download"></i> Installation Guide</h2>
+            <div class="installation-steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>Download Extension</h4>
+                        <p>Download the Action Tracker extension file (.crx or .zip) from the official source</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>Open Chrome Extensions</h4>
+                        <p>Navigate to <code>chrome://extensions/</code> in your Chrome browser</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>Enable Developer Mode</h4>
+                        <p>Toggle the "Developer mode" switch in the top-right corner of the extensions page</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h4>Load Extension</h4>
+                        <p>Click "Load unpacked" and select the extension folder, or drag and drop the .crx file</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <h4>Pin Extension</h4>
+                        <p>Pin the Action Tracker extension to your toolbar for easy access</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Controls Section -->
+        <section class="controls-section">
+            <h2><i class="fas fa-gamepad"></i> Extension Controls</h2>
+            <div class="controls-grid">
+                
+                <!-- Play Button -->
+                <div class="control-card">
+                    <button class="control-btn play-btn" id="playBtn">
+                        <i class="fas fa-play"></i>
+                        <span>Play</span>
+                    </button>
+                    <h4>Start Tracking</h4>
+                    <p>Initiates the operation tracking mode. Once activated, the extension begins monitoring all user interactions including clicks, form inputs, navigation events, and element selections. Each action is captured with precise timing and context information.</p>
+                    <div class="status-indicator" id="playStatus">Ready to track operations</div>
+                </div>
+
+                <!-- Stop Button -->
+                <div class="control-card">
+                    <button class="control-btn stop-btn" id="stopBtn">
+                        <i class="fas fa-stop"></i>
+                        <span>Stop</span>
+                    </button>
+                    <h4>Stop Tracking</h4>
+                    <p>Ceases the current tracking session and finalizes the captured operation sequence. All recorded interactions are preserved and prepared for analysis. The session data includes XPath selectors, element properties, and user action metadata.</p>
+                    <div class="status-indicator" id="stopStatus">Tracking session inactive</div>
+                </div>
+
+                <!-- Generate Button -->
+                <div class="control-card">
+                    <button class="control-btn generate-btn" id="generateBtn">
+                        <i class="fas fa-magic"></i>
+                        <span>Generate</span>
+                    </button>
+                    <h4>AI Code Generation</h4>
+                    <p>Processes tracked operations through AI algorithms to generate comprehensive Playwright test cases in TypeScript. The system analyzes XPath patterns, optimizes selectors, and creates maintainable test code with proper assertions and error handling.</p>
+                    <div class="status-indicator" id="generateStatus">Ready to generate test code</div>
+                </div>
+
+                <!-- Run Button -->
+                <div class="control-card">
+                    <button class="control-btn run-btn" id="runBtn">
+                        <i class="fas fa-rocket"></i>
+                        <span>Run</span>
+                    </button>
+                    <h4>Execute Tests</h4>
+                    <p>Launches the generated Playwright test cases in your configured testing environment. Executes comprehensive test scenarios including setup, teardown, and validation steps. Provides detailed execution reports and identifies any test failures or inconsistencies.</p>
+                    <div class="status-indicator" id="runStatus">Test environment ready</div>
+                </div>
+
+                <!-- Clear Button -->
+                <div class="control-card">
+                    <button class="control-btn clear-btn" id="clearBtn">
+                        <i class="fas fa-trash-alt"></i>
+                        <span>Clear</span>
+                    </button>
+                    <h4>Clear Session Data</h4>
+                    <p>Removes all tracked operations, generated code, and session history from the extension storage. This action resets the workspace to a clean state, allowing you to start fresh tracking sessions without interference from previous data.</p>
+                    <div class="status-indicator" id="clearStatus">Session data preserved</div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Workflow Section -->
+        <section class="workflow-section">
+            <h2><i class="fas fa-cogs"></i> QA Automation Workflow</h2>
+            <div class="workflow-diagram">
+                <div class="workflow-step">
+                    <div class="workflow-icon"><i class="fas fa-play-circle"></i></div>
+                    <h4>1. Track Operations</h4>
+                    <p>Start recording user interactions on your web application</p>
+                </div>
+                <div class="workflow-arrow"><i class="fas fa-arrow-right"></i></div>
+                <div class="workflow-step">
+                    <div class="workflow-icon"><i class="fas fa-crosshairs"></i></div>
+                    <h4>2. Generate XPaths</h4>
+                    <p>Automatically create precise element selectors</p>
+                </div>
+                <div class="workflow-arrow"><i class="fas fa-arrow-right"></i></div>
+                <div class="workflow-step">
+                    <div class="workflow-icon"><i class="fas fa-brain"></i></div>
+                    <h4>3. AI Processing</h4>
+                    <p>Transform operations into Playwright test cases</p>
+                </div>
+                <div class="workflow-arrow"><i class="fas fa-arrow-right"></i></div>
+                <div class="workflow-step">
+                    <div class="workflow-icon"><i class="fas fa-upload"></i></div>
+                    <h4>4. Export & Upload</h4>
+                    <p>Generate and upload TypeScript test files</p>
+                </div>
+                <div class="workflow-arrow"><i class="fas fa-arrow-right"></i></div>
+                <div class="workflow-step">
+                    <div class="workflow-icon"><i class="fas fa-play"></i></div>
+                    <h4>5. Execute Tests</h4>
+                    <p>Run automated test suites with Playwright</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Benefits Section -->
+        <section class="benefits-section">
+            <h2><i class="fas fa-star"></i> Key Benefits</h2>
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <i class="fas fa-clock"></i>
+                    <h4>Time Efficiency</h4>
+                    <p>Reduce test creation time with automated generation</p>
+                </div>
+                <div class="benefit-card">
+                    <i class="fas fa-shield-alt"></i>
+                    <h4>Reliability</h4>
+                    <p>Generate robust test cases with optimized selectors and error handling</p>
+                </div>
+                <div class="benefit-card">
+                    <i class="fas fa-sync-alt"></i>
+                    <h4>Consistency</h4>
+                    <p>Maintain standardized testing patterns across your entire QA team</p>
+                </div>
+                <div class="benefit-card">
+                    <i class="fas fa-chart-line"></i>
+                    <h4>Scalability</h4>
+                    <p>Easily scale your automation testing efforts across multiple projects</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2025 Action Tracker. Empowering QA Engineers with AI-driven automation solutions.</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

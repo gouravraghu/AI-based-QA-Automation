@@ -38,3 +38,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true;
     }
 });
+
+//This code is load a web page content when extension is install
+chrome.runtime.onInstalled.addListener(() => {
+    chrome.tabs.create({
+      url: chrome.runtime.getURL("index.html")
+    });
+  });
