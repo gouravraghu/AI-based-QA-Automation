@@ -6,24 +6,27 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 const actions = data.actions || [];
 
                 if (actions.length === 0) {
-                    sendResponse({ status: "No actions to download." });
+                    sendResponse({ status: "No actions to upload." });
                     return;
                 }
 
-                const textContent = actions.join("\n");
-                const dataUrl = "data:text/plain;charset=utf-8," + encodeURIComponent(textContent);
-
-                await chrome.downloads.download({
-                    url: dataUrl,
-                    filename: "user_actions.txt",
-                    saveAs: true
+                // Send actions to backend for Gist upload and automation
+                const response = await fetch('http://localhost:10000/upload-and-run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ actions })
                 });
 
-                await chrome.storage.local.set({ actions: [] });
+                const result = await response.json();
 
-                sendResponse({ status: "Download and clear successful." });
+                if (result.success) {
+                    await chrome.storage.local.set({ actions: [] });
+                    sendResponse({ status: "Upload and automation successful.", gistId: result.gistId });
+                } else {
+                    sendResponse({ status: "Error: " + result.error });
+                }
             } catch (err) {
-                console.error("Error during download process:", err);
+                console.error("Error during upload process:", err);
                 sendResponse({ status: "Error: " + err.message });
             }
         })();
