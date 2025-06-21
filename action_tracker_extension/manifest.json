@@ -3,7 +3,7 @@
     "name": "Action Tracker",
     "version": "1.0",
     "description": "Tracks user interactions and saves them as a text file.",
-    "permissions": ["activeTab", "downloads", "storage"],
+    "permissions": ["activeTab", "downloads", "storage", "tabs"],
     "background": {
         "service_worker": "background.js",
         "type": "module"
