@@ -4,7 +4,6 @@ document.getElementById("start").addEventListener("click", () => {
         chrome.tabs.sendMessage(tabs[0].id, { action: "startLogging" }, (response) => {
             setProgress(response?.status || "Start triggered");
             console.log(response?.status || "Start triggered");
-            alert(response?.status || "Start triggered");
         });
     });
 });

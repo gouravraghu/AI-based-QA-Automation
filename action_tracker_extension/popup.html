@@ -1,82 +1,342 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Action Tracker</title>
-  <link rel="stylesheet" href="styles.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    body {
-      width: 270px;
-      font-family: 'Inter', Arial, sans-serif;
-      text-align: center;
-      padding: 18px 10px 10px 10px;
-      background: linear-gradient(135deg, rgb(102,126,234) 0%, #764ba2 100%);
-      color: #fff;
-      border-radius: 18px;
-      box-shadow: 0 4px 24px rgba(102,126,234,0.12);
-    }
-    h3 {
-      color: #fff;
-      font-weight: 700;
-      margin-bottom: 18px;
-      letter-spacing: 1px;
-    }
-    #progress {
-      margin-top: 12px;
-      color: #fff;
-      font-size: 13px;
-      min-height: 18px;
-      background: rgba(102,126,234,0.18);
-      border-radius: 8px;
-      padding: 4px 0;
-    }
-    button {
-      background-color: #007bff;
-      color: white;
-      border: none;
-      padding: 8px;
-      cursor: pointer;
-      width: 100%;
-      margin: 5px 0;
-      border-radius: 8px;
-      font-weight: 600;
-      transition: background-color 0.3s, transform 0.2s;
-    }
-    button:hover {
-      background-color: #0056b3;
-      transform: translateY(-1px);
-    }
-    .at-btn-secondary {
-      background-color: #6c757d;
-    }
-    .at-btn-secondary:hover {
-      background-color: #5a6268;
-    }
-    #editPopup {
-      background: #f9f9f9;
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin-top: 10px;
-      max-height: 300px;
-      overflow-y: auto;
-      display: none;
-      text-align: left;
-    }
-    .edit-block {
-      border: 1px solid #ddd;
-      padding: 5px;
-      margin-bottom: 10px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test-Pilot AI - Chrome Extension</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 320px;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .popup-header {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .popup-header h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .popup-header .subtitle {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .popup-content {
+            padding: 20px;
+        }
+
+        .button-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .control-btn {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .control-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .control-btn:hover::before {
+            left: 100%;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .control-btn:active {
+            transform: translateY(0);
+        }
+
+        .control-btn i {
+            font-size: 1rem;
+        }
+
+        /* Button variants */
+        .start-btn {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        }
+
+        .start-btn:hover {
+            box-shadow: 0 6px 16px rgba(72, 187, 120, 0.4);
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .generate-btn:hover {
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .secondary-btn {
+            background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
+        }
+
+        .secondary-btn:hover {
+            box-shadow: 0 6px 16px rgba(113, 128, 150, 0.4);
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #38b2ac 0%, #319795 100%);
+        }
+
+        .download-btn:hover {
+            box-shadow: 0 6px 16px rgba(56, 178, 172, 0.4);
+        }
+
+        .edit-btn {
+            background: linear-gradient(135deg, #d69e2e 0%, #b7791f 100%);
+        }
+
+        .edit-btn:hover {
+            box-shadow: 0 6px 16px rgba(214, 158, 46, 0.4);
+        }
+
+        #progress {
+            background: black;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 0.85rem;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            line-height: 1.4;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        #editPopup {
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 15px 0px 0px 20px;
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            text-align: left;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .edit-block {
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 8px;
+            margin-bottom: 10px;
+            background: #f7fafc;
+            font-size: 0.8rem;
+        }
+
+        .edit-block:last-child {
+            margin-bottom: 0;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #48bb78;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-dot.inactive {
+            background: #718096;
+            animation: none;
+        }
+
+        .status-dot.processing {
+            background: #ed8936;
+        }
+
+        /* Scrollbar styling */
+        #editPopup::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #editPopup::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 3px;
+        }
+
+        #editPopup::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.6);
+            border-radius: 3px;
+        }
+
+        #editPopup::-webkit-scrollbar-thumb:hover {
+            background: rgba(223, 226, 239, 0.8);
+        }
+
+        .edit-popup-buttons {
+            display: flex;
+            gap: 10px;
+            padding: 15px 0 5px 0;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 15px;
+        }
+
+        .edit-popup-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .save-btn {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+        }
+
+        .save-btn:hover {
+            background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+            transform: translateY(-1px);
+        }
+
+        .cancel-btn {
+            background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
+            color: white;
+        }
+
+        .cancel-btn:hover {
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+            transform: translateY(-1px);
+        }
+
+        .edit-popup-btn i {
+            font-size: 0.8rem;
+        }
+    </style>
 </head>
 <body>
-    <h3>Action Tracker</h3>
-    <button id="start" class="at-btn">Start Logging</button>
-    <button id="download" class="at-btn">Generate Script</button>
-    <button id="clear" class="at-btn at-btn-secondary">Clear Logs</button>
-    <button id="edit" class="at-btn at-btn-secondary">Edit Logs</button>
-    <button id="downloadScript" class="at-btn">Download Generated Script</button>
-    <div id="progress"></div>
+    <div class="popup-header">
+        <h3><i class="fas fa-robot"></i>Test-Pilot AI</h3>
+        <div class="subtitle">AI-Powered QA Automation</div>
+    </div>
+    
+    <div class="popup-content">
+        <div class="button-grid">
+            <button id="start" class="control-btn start-btn">
+                <i class="fas fa-play"></i>
+                <span>Start Logging</span>
+            </button>
+            
+            <button id="download" class="control-btn generate-btn">
+                <i class="fas fa-magic"></i>
+                <span>Generate Script</span>
+            </button>
+            
+            <button id="clear" class="control-btn secondary-btn">
+                <i class="fas fa-trash-alt"></i>
+                <span>Clear Logs</span>
+            </button>
+            
+            <button id="edit" class="control-btn edit-btn">
+                <i class="fas fa-edit"></i>
+                <span>Edit Logs</span>
+            </button>
+            
+            <button id="downloadScript" class="control-btn download-btn">
+                <i class="fas fa-download"></i>
+                <span>Download Generated Script</span>
+            </button>
+        </div>
+        
+        <div id="progress">
+            <span class="status-dot inactive"></span>
+            Ready to track operations
+        </div>
+        
+        <div id="editPopup">
+            <div class="edit-block">
+                <strong>No logs available</strong><br>
+                Start logging to see captured operations here.
+            </div>
+            <div class="edit-popup-buttons">
+                <button class="edit-popup-btn save-btn">
+                    <i class="fas fa-save"></i>
+                    Save Changes
+                </button>
+                <button class="edit-popup-btn cancel-btn">
+                    <i class="fas fa-times"></i>
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="popup.js"></script>
 </body>
 </html>
