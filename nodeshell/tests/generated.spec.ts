@@ -1,94 +1,102 @@
 const { test, expect } = require('@playwright/test');
 
-class LoginPage {
-  constructor(page) {
-    this.page = page;
+test.describe('OrangeHRM Login and Logout', () => {
+
+  const baseURL = "https://opensource-demo.orangehrmlive.com/web/index.php/auth/login";
+
+  async function login(page, username, password) {
+    console.log(`Entering username: ${username}`);
+    await page.locator("xpath=/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[2]/div[2]/form[1]/div[1]/div[1]/div[2]/input[1]").waitFor({ state: "visible", timeout: 10000 });
+    await page.locator("xpath=/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[2]/div[2]/form[1]/div[1]/div[1]/div[2]/input[1]").fill(username);
+    console.log(`Entering password: ${password}`);
+    await page.locator("xpath=/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[2]/div[2]/form[1]/div[2]/div[1]/div[2]/input[1]").waitFor({ state: "visible", timeout: 10000 });
+    await page.locator("xpath=/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[2]/div[2]/form[1]/div[2]/div[1]/div[2]/input[1]").fill(password);
+    console.log('Clicking login button');
+    await page.locator("xpath=/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[2]/div[2]/form[1]/div[3]/button[1]").waitFor({ state: "visible", timeout: 10000 });
+    await page.locator("xpath=/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[2]/div[2]/form[1]/div[3]/button[1]").click();
   }
 
-  async fillUsername(username) {
-    const usernameField = this.page.locator("xpath=//*[@id=\"user-name\"]");
-    await usernameField.waitFor({ state: "visible", timeout: 10000 });
-    await usernameField.fill(username);
+  async function logout(page) {
+    console.log('Opening user dropdown');
+    await page.locator("xpath=/html[1]/body[1]/div[1]/div[1]/div[1]/header[1]/div[1]/div[3]/ul[1]/li[1]/span[1]/p[1]").waitFor({ state: "visible", timeout: 10000 });
+    await page.locator("xpath=/html[1]/body[1]/div[1]/div[1]/div[1]/header[1]/div[1]/div[3]/ul[1]/li[1]/span[1]/p[1]").click();
+    console.log('Clicking logout button');
+    await page.locator("xpath=/html[1]/body[1]/div[1]/div[1]/div[1]/header[1]/div[1]/div[3]/ul[1]/li[1]/ul[1]/li[4]/a[1]").waitFor({ state: "visible", timeout: 10000 });
+    await page.locator("xpath=/html[1]/body[1]/div[1]/div[1]/div[1]/header[1]/div[1]/div[3]/ul[1]/li[1]/ul[1]/li[4]/a[1]").click();
   }
 
-  async fillPassword(password) {
-    const passwordField = this.page.locator("xpath=//*[@id=\"password\"]");
-    await passwordField.waitFor({ state: "visible", timeout: 10000 });
-    await passwordField.fill(password);
-  }
-
-  async clickLogin() {
-    const loginButton = this.page.locator("xpath=//*[@id=\"login-button\"]");
-    await loginButton.waitFor({ state: "visible", timeout: 10000 });
-    await loginButton.click();
-  }
-
-  async getErrorMessage() {
-    return this.page.locator("xpath=//*[@data-test=\"error\"]");
-  }
-}
-
-test.describe('Login Page Tests', () => {
-  let page;
-  let loginPage;
-
-  test.beforeAll(async ({ browser }) => {
-    page = await browser.newPage();
-    loginPage = new LoginPage(page);
-    await page.goto('https://www.saucedemo.com/');
-  });
-
-  test.afterAll(async () => {
-    await page.close();
-  });
-
-  test('Empty Username and Password', async () => {
-    await loginPage.clickLogin();
+  test('Successful Login and Logout', async ({ page }) => {
+    await page.goto(baseURL);
     await page.waitForLoadState("networkidle");
-    const errorMessage = loginPage.getErrorMessage();
-    // Wait for error message to be visible
-    await errorMessage.waitFor({ state: "visible", timeout: 5000 });
-    // Log the actual error message text
-    const errorText = await errorMessage.textContent();
-    process.stdout.write('Actual error message: ' + errorText + '\n');
-    debugger; // Pause here for interactive debugging if running with --inspect-brk
-    await expect(errorMessage).toHaveText('Epic sadface: Username is required');
+
+    // Step 1: Login
+    try {
+      await login(page, 'admin', 'admin123');
+      await page.waitForLoadState("networkidle");
+      // Verify successful login
+      await page.locator("xpath=//h6[text()='Dashboard']").waitFor({ state: "visible", timeout: 10000 });
+      await expect(page.locator("xpath=//h6[text()='Dashboard']")).toBeVisible();
+      console.log('Login successful');
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
+    }
+
+    // Step 2: Logout
+    try {
+      await logout(page);
+      await page.waitForLoadState("networkidle");
+      // Verify successful logout - back on login page
+      await expect(page.locator("xpath=/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[2]/div[2]/form[1]/div[1]/div[1]/div[2]/input[1]")).toBeVisible();
+      console.log('Logout successful');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      throw error;
+    }
   });
 
-  test('Empty Password', async () => {
-    await loginPage.fillUsername('testuser');
-    await loginPage.clickLogin();
+  test('Login with Invalid Credentials', async ({ page }) => {
+    await page.goto(baseURL);
     await page.waitForLoadState("networkidle");
-    const errorMessage = loginPage.getErrorMessage();
-    await expect(errorMessage).toHaveText('Epic sadface: Password is required');
+
+    // Step 1: Login with invalid credentials
+    try {
+      await login(page, 'invalid_user', 'invalid_password');
+      await page.waitForLoadState("networkidle");
+
+      // Verify error message
+      await page.locator("xpath=/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[2]/div[2]/div[1]/div[1]/div[1]/p[1]").waitFor({ state: "visible", timeout: 10000 });
+      await expect(page.locator("xpath=/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[2]/div[2]/div[1]/div[1]/div[1]/p[1]")).toBeVisible();
+      console.log('Login with invalid credentials failed as expected.');
+    } catch (error) {
+      console.error('Error during invalid login attempt:', error);
+      throw error;
+    }
   });
 
-  test('Invalid Login', async () => {
-    await loginPage.fillUsername('testuser');
-    await loginPage.fillPassword('testpass');
-    await loginPage.clickLogin();
-    await page.waitForLoadState("networkidle");
-    const errorMessage = loginPage.getErrorMessage();
-    await expect(errorMessage).toHaveText('Epic sadface: Username and password do not match any user in this service');
-  });
+    test('Empty Username Login', async ({ page }) => {
+        await page.goto(baseURL);
+        await page.waitForLoadState("networkidle");
 
-  test('Valid Login', async () => {
-    await loginPage.fillUsername('standard_user');
-    await loginPage.fillPassword('secret_sauce');
-    await loginPage.clickLogin();
-    await page.waitForLoadState("networkidle");
-    await expect(page).toHaveURL('https://www.saucedemo.com/inventory.html');
-  });
+        // Step 1: Try to login with empty username
+        try {
+            console.log('Entering empty username');
+            await page.locator("xpath=/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[2]/div[2]/form[1]/div[1]/div[1]/div[2]/input[1]").waitFor({ state: "visible", timeout: 10000 });
+            await page.locator("xpath=/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[2]/div[2]/form[1]/div[1]/div[1]/div[2]/input[1]").fill('');
+            console.log('Entering password');
+            await page.locator("xpath=/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[2]/div[2]/form[1]/div[2]/div[1]/div[2]/input[1]").waitFor({ state: "visible", timeout: 10000 });
+            await page.locator("xpath=/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[2]/div[2]/form[1]/div[2]/div[1]/div[2]/input[1]").fill('admin123');
+            console.log('Clicking login button');
+            await page.locator("xpath=/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[2]/div[2]/form[1]/div[3]/button[1]").waitFor({ state: "visible", timeout: 10000 });
+            await page.locator("xpath=/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[2]/div[2]/form[1]/div[3]/button[1]").click();
+            await page.waitForLoadState("networkidle");
 
-  test('Additional actions from provided script', async () => {
-    await page.goto('https://www.saucedemo.com/');
-    const loginButton = page.locator("xpath=//*[@id=\"login-button\"]");
-    await loginButton.waitFor({ state: "visible", timeout: 10000 });
-    await loginButton.click();
-    const usernameField = page.locator("xpath=//*[@id=\"user-name\"]");
-    await usernameField.waitFor({ state: "visible", timeout: 10000 });
-    await usernameField.fill('hfkd');
-    await loginButton.waitFor({ state: "visible", timeout: 10000 });
-    await loginButton.click();
-  });
+            await page.locator("xpath=/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[2]/div[2]/form[1]/div[1]/div[1]/span[1]").waitFor({ state: "visible", timeout: 10000 });
+            await expect(page.locator("xpath=/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[2]/div[2]/form[1]/div[1]/div[1]/span[1]")).toBeVisible()
+
+        } catch (error) {
+            console.error('Error during login attempt with empty username:', error);
+            throw error;
+        }
+    });
 });

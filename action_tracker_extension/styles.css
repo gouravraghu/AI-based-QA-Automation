@@ -468,6 +468,43 @@ code {
     border-radius: 0 0 20px 20px;
 }
 
+/* Button Styles */
+.at-btn {
+    background: linear-gradient(135deg, rgb(102,126,234) 0%, #764ba2 100%);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 0;
+    font-size: 1rem;
+    font-family: 'Inter', Arial, sans-serif;
+    font-weight: 600;
+    margin: 6px 0;
+    width: 100%;
+    box-shadow: 0 2px 8px rgba(102,126,234,0.08);
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+    outline: none;
+}
+
+.at-btn:hover, .at-btn:focus {
+    background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
+    box-shadow: 0 4px 16px rgba(102,126,234,0.18);
+    transform: translateY(-2px) scale(1.03);
+}
+
+.at-btn-secondary {
+    background: #fff;
+    color: rgb(102,126,234);
+    border: 1.5px solid rgb(102,126,234);
+    font-weight: 600;
+}
+
+.at-btn-secondary:hover, .at-btn-secondary:focus {
+    background: rgba(102,126,234,0.08);
+    color: #222;
+    border-color: #5a67d8;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .container {

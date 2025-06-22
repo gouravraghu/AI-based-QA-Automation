@@ -38,38 +38,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 });
 
-// Add Download Generated Script button
-const downloadScriptBtn = document.createElement('button');
-downloadScriptBtn.id = 'downloadScript';
-downloadScriptBtn.textContent = 'Download Generated Script';
-downloadScriptBtn.style.margin = '5px 0';
-document.body.insertBefore(downloadScriptBtn, document.getElementById('clear'));
-
-downloadScriptBtn.addEventListener('click', () => {
-    setProgress('Downloading generated script...');
-    // Fetch the generated script from backend
-    fetch('http://localhost:10000/report/../tests/generated.spec.ts')
-        .then(response => {
-            if (!response.ok) throw new Error('Failed to fetch script');
-            return response.text();
-        })
-        .then(scriptContent => {
-            const blob = new Blob([scriptContent], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'generated.spec.ts';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            setProgress('Script downloaded!');
-        })
-        .catch(err => {
-            setProgress('Failed to download script.');
-            console.error(err);
-        });
-});
+// Only add event listener if the button exists in the DOM
+const downloadScriptBtn = document.getElementById('downloadScript');
+if (downloadScriptBtn) {
+    downloadScriptBtn.addEventListener('click', () => {
+        setProgress('Downloading generated script...');
+        const a = document.createElement('a');
+        a.href = 'http://localhost:10000/download-generated-spec';
+        a.download = 'generated.spec.ts';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setProgress('Script downloaded!');
+    });
+}
 
 document.getElementById("edit")?.addEventListener("click", () => {
     chrome.windows.create({

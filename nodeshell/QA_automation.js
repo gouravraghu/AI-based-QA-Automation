@@ -38,36 +38,51 @@ async function runAutomationWithGist(gistId, landingUrl) {
   try {
     const gistResponse = await axios.get(gistRawUrl);
     const userActions = gistResponse.data;
-    const prompt = `You are an expert QA automation engineer.
-Convert the following user action script (which uses XPath locators) into a Playwright test automation suite. Use CommonJS require() syntax for all imports (e.g., const { test, expect } = require('@playwright/test')). Do not use ES module import statements.
-Output only valid, executable JavaScript code that can be run directly by Playwright. Do not include any explanations, comments, Markdown formatting, or code fences. Do not include any headings, plain text, or extra output—only the code.
+    const prompt = `,
+You are an expert QA engineer. Your task is to convert the following user action script (which uses XPath locators) into a fully functional Playwright test file in TypeScript. The generated test must adhere to these requirements:
 
-STRICT STRUCTURE RULES:
-- Every method in a class must be closed with a single } before the next method starts.
-- The class must be closed with a single } before any test.describe or test() block.
-- Every test.beforeAll, test.afterAll, and test() block must be closed with a single }.
-- The test.describe block must be closed with a single } at the end.
-- Do NOT omit any closing braces.
-- Do NOT add extra closing braces.
-- Output only valid, executable Playwright JavaScript code, with all braces and parentheses balanced.
-- Do NOT output markdown, comments, or explanations—only code.
+### Test Case Structure
+1. Write test cases step-by-step based on the user actions provided.
+2. Include both **positive** and **negative** scenarios for each step.
+3. Clearly separate each step with comments (e.g., "// Step 1: Login").
+4. For negative scenarios, simulate invalid inputs or unexpected conditions and verify proper error handling.
 
-Requirements:
-- Use a modular Page Object class for the page under test, with one method per control (e.g., fillUsername, fillPassword, clickLogin). Each method must use only XPath selectors with page.locator("xpath=...").
-- Write separate test cases for each required field and for valid input.
-- For all Playwright assertions, always use the await keyword: use await expect(locator).toHaveText(...), await expect(locator).toContainText(...), and await expect(page).toHaveURL(...).
-- Never use expect(await locator)... or expect(page).toHaveURL(...) without await.
-- Do not use expect(page.url()).toContain(...); always use await expect(page).toHaveURL(...).
-- If a helper function returns a Playwright locator, do not use 'await' on the function call when passing it to expect(). For example, use 'const errorMessage = loginPage.getErrorMessage(); await expect(errorMessage).toHaveText(...)'. Never use 'expect(await locator)...' or 'expect(await loginPage.getErrorMessage())...'.
-- Do not use 'this' to store or access the page or page objects inside test blocks. Use variables declared in the test scope (e.g., let page; let loginPage;) and assign them in beforeAll.
-- Use Playwright’s expect() for assertions after each action. For text assertions, use only await expect(locator).toHaveText(...) or await expect(locator).toContainText(...) as supported by Playwright. Do not use expect(locator).toContainText if locator is not valid for that assertion.
-- For URL assertions, use await expect(page).toHaveURL(...).
-- Before any interaction, wait for visibility with await locator.waitFor({ state: "visible", timeout: 10000 }). After form submission or page changes, use await page.waitForLoadState("networkidle").
-- Use require("@playwright/test") for all imports. Use test.describe, test.beforeAll, and test.afterAll blocks.
-- Do not use any assertion or method that is not valid Playwright JavaScript API.
-- All tests must use the URL: ${landingUrl} as the login page.
+### Requirements
+Use CommonJS require() syntax for all imports (e.g., const { test, expect } = require('@playwright/test')). Do not use ES module import statements.
 
-Below is the user flow/script (using XPath selectors):
+### Navigation & Setup
+Start by navigating to:
+  “${landingUrl}”
+After each navigation or reload, use:
+  \await page.waitForLoadState("networkidle")\
+
+### Element Selection & Waiting
+Use only XPath selectors with Playwright’s syntax:
+  \page.locator("xpath=YOUR_XPATH_HERE")\
+Before interacting, always wait with timeouts:
+  \await locator.waitFor({ state: "visible", timeout: 10000 })\
+Use \toBeVisible({ timeout: 10000 })\, \toBeEnabled()\, or \toHaveText()\ for all verifications.
+
+### Assertions & Failure Handling
+After each action, assert the expected outcome using Playwright \expect()\.
+If an expectation fails, the test must throw a clear error.
+Surround each major step in try/catch, log errors with \console.error()\, and rethrow to fail the test.
+
+### Modularity & Logging
+Encapsulate repeated logic (e.g., login, wait-and-click) in reusable helper functions.
+Add \console.log()\ before and after each helper function to trace execution.
+
+### Post-Login Verification
+Verify successful login by checking for a dashboard or user profile element via XPath and \expect(...).toBeVisible()\.
+
+### Negative Scenarios
+For each step, include at least one negative scenario:
+  - Example: For login, test with invalid credentials and verify the error message.
+  - Example: For form submission, test with missing or invalid inputs.
+
+### Output
+Output only the executable Playwright test file (imports, fixtures, helper functions, and test body).
+Do not include plain-language comments or steps, only code.
 
 SCRIPT:
 ${userActions}`;
@@ -171,10 +186,20 @@ ${userActions}`;
     }
     fs.writeFileSync('./tests/generated.spec.ts', fixedTestCode);
     //console.log("Test code written to ./tests/generated.spec.ts");
-    execSync('npx playwright test --headed', { stdio: 'inherit' });
+    let testFailed = false;
+    try {
+      execSync('npx playwright test --headed', { stdio: 'inherit' });
+    } catch (err) {
+      testFailed = true;
+      console.error('Playwright tests failed:', err.message);
+    }
     const reportPath = path.join(__dirname, 'playwright-report');
     if (fs.existsSync(reportPath)) {
-      execSync('npx playwright show-report', { stdio: 'inherit' });
+      try {
+        execSync('npx playwright show-report', { stdio: 'inherit' });
+      } catch (err) {
+        console.error('Failed to open Playwright report:', err.message);
+      }
     } else {
       console.error('No Playwright report found.');
     }
@@ -212,6 +237,16 @@ app.post('/upload-and-run', async (req, res) => {
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
+});
+
+// Endpoint to download the generated Playwright test script
+app.get('/download-generated-spec', (req, res) => {
+  const file = path.join(__dirname, 'tests', 'generated.spec.ts');
+  res.download(file, 'generated.spec.ts', (err) => {
+    if (err) {
+      res.status(500).send('Error downloading the file.');
+    }
+  });
 });
 
 app.get('/', (req, res) => res.send('Playwright automation running!'));

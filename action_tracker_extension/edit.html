@@ -2,41 +2,90 @@
 <html lang="en">
 <head>
   <title>Edit Logs</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
-      width: 300px;
-      font-family: Arial, sans-serif;
-      padding: 10px;
+      width: 100%;
+      max-width: 350px;
+      min-width: 220px;
+      font-family: 'Inter', Arial, sans-serif;
+      padding: 18px 10px 10px 10px;
+      background: linear-gradient(135deg, rgb(102,126,234) 0%, #764ba2 100%);
+      color: #fff;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px rgba(102,126,234,0.12);
+      box-sizing: border-box;
+    }
+    h3 {
+      color: #fff;
+      font-weight: 700;
+      margin-bottom: 18px;
+      letter-spacing: 1px;
+      text-align: center;
     }
     .edit-block {
       border: 1px solid #ddd;
       padding: 8px;
       margin-bottom: 10px;
+      border-radius: 8px;
+      background: #fff;
+      color: #222;
+      word-break: break-word;
     }
     input[type="text"] {
       width: 100%;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      padding: 6px;
+      margin-bottom: 6px;
+      color: #222;
+      background: #f7f7ff;
+    }
+    .edit-btn-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
     }
     button {
-      background-color: #007bff;
+      background-color: rgb(102,126,234);
       color: white;
       border: none;
-      padding: 8px;
-      margin-top: 10px;
-      width: 48%;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s;
     }
     button:hover {
       background-color: #0056b3;
+    }
+    .at-btn-secondary {
+      background-color: #ddd;
+      color: #222;
+    }
+    .at-btn-secondary:hover {
+      background-color: #ccc;
+    }
+    @media (max-width: 400px) {
+      body {
+        padding: 8px 2px 2px 2px;
+        min-width: 140px;
+      }
+      .edit-btn-row button {
+        font-size: 0.9rem;
+        padding: 7px 0;
+      }
     }
   </style>
 </head>
 <body>
   <h3>Edit Logs</h3>
   <div id="editFields"></div>
-  <div style="display: flex; justify-content: space-between;">
-    <button id="saveAll">Save</button>
-    <button id="closeWindow">Close</button>
+  <div class="edit-btn-row">
+    <button id="saveAll" class="at-btn">Save</button>
+    <button id="closeWindow" class="at-btn at-btn-secondary">Close</button>
   </div>
-
   <script src="edit.js"></script>
 </body>
 </html>
