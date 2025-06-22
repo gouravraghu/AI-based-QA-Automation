@@ -12,30 +12,6 @@ class ActionTrackerDemo {
     }
 
     initializeEventListeners() {
-        // Play button functionality
-        document.getElementById('playBtn').addEventListener('click', () => {
-            this.handlePlayAction();
-        });
-
-        // Stop button functionality
-        document.getElementById('stopBtn').addEventListener('click', () => {
-            this.handleStopAction();
-        });
-
-        // Generate button functionality
-        document.getElementById('generateBtn').addEventListener('click', () => {
-            this.handleGenerateAction();
-        });
-
-        // Run button functionality
-        document.getElementById('runBtn').addEventListener('click', () => {
-            this.handleRunAction();
-        });
-
-        // Clear button functionality
-        document.getElementById('clearBtn').addEventListener('click', () => {
-            this.handleClearAction();
-        });
     }
 
     initializeAnimations() {
@@ -123,9 +99,9 @@ class ActionTrackerDemo {
         this.showMessage(`Tracking session ended. Captured ${this.operationsCount} operations.`, 'success');
     }
 
-    handleGenerateAction() {
-        const generateBtn = document.getElementById('generateBtn');
-        const generateStatus = document.getElementById('generateStatus');
+    handleGenerateAndRunAction() {
+        const generateRunBtn = document.getElementById('generateRunBtn');
+        const generateRunStatus = document.getElementById('generateRunStatus');
 
         if (this.operationsCount === 0) {
             this.showMessage('No operations to generate tests from. Please track some operations first.', 'warning');
@@ -133,48 +109,25 @@ class ActionTrackerDemo {
         }
 
         if (this.isProcessing) {
-            this.showMessage('AI code generation is already in progress', 'warning');
+            this.showMessage('AI code generation and execution is already in progress', 'warning');
             return;
         }
 
         // Animate button
-        generateBtn.classList.add('active');
-        setTimeout(() => generateBtn.classList.remove('active'), 500);
+        generateRunBtn.classList.add('active');
+        setTimeout(() => generateRunBtn.classList.remove('active'), 500);
 
         // Update processing state
         this.isProcessing = true;
 
         // Update status
-        generateStatus.textContent = 'AI is analyzing operations and generating Playwright test cases...';
-        generateStatus.classList.add('processing');
+        generateRunStatus.textContent = 'AI is analyzing operations and generating Playwright test cases...';
+        generateRunStatus.classList.add('processing');
 
-        // Simulate AI processing
-        this.simulateAIGeneration(generateStatus);
+        // Simulate combined AI processing and execution
+        this.simulateGenerateAndRun(generateRunStatus);
 
-        this.showMessage('AI code generation initiated. Processing tracked operations...', 'info');
-    }
-
-    handleRunAction() {
-        const runBtn = document.getElementById('runBtn');
-        const runStatus = document.getElementById('runStatus');
-
-        if (this.generatedTestsCount === 0) {
-            this.showMessage('No test cases available. Please generate tests first.', 'warning');
-            return;
-        }
-
-        // Animate button
-        runBtn.classList.add('active');
-        setTimeout(() => runBtn.classList.remove('active'), 500);
-
-        // Update status
-        runStatus.textContent = `Executing ${this.generatedTestsCount} Playwright test cases...`;
-        runStatus.classList.add('processing');
-
-        // Simulate test execution
-        this.simulateTestExecution(runStatus);
-
-        this.showMessage('Test execution started. Running Playwright test cases...', 'info');
+        this.showMessage('AI code generation and execution initiated. Processing tracked operations...', 'info');
     }
 
     handleClearAction() {
@@ -206,6 +159,77 @@ class ActionTrackerDemo {
         this.showMessage('All session data has been cleared successfully.', 'success');
     }
 
+    handleDownloadAction() {
+        const downloadBtn = document.getElementById('downloadBtn');
+        const downloadStatus = document.getElementById('downloadStatus');
+
+        if (this.generatedTestsCount === 0) {
+            this.showMessage('No test scripts available for download. Please generate tests first.', 'warning');
+            return;
+        }
+
+        // Animate button
+        downloadBtn.classList.add('active');
+        setTimeout(() => downloadBtn.classList.remove('active'), 500);
+
+        // Update status
+        downloadStatus.textContent = 'Preparing script for download...';
+        downloadStatus.classList.add('processing');
+
+        // Simulate download preparation
+        setTimeout(() => {
+            // Create and download a sample test file
+            const testScript = this.generateSampleTestScript();
+            const blob = new Blob([testScript], { type: 'text/typescript' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'playwright-test-script.ts';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            downloadStatus.textContent = 'Script downloaded successfully!';
+            downloadStatus.classList.remove('processing');
+            downloadStatus.classList.add('active');
+
+            setTimeout(() => {
+                downloadStatus.textContent = 'Script ready for download';
+                downloadStatus.classList.remove('active');
+            }, 3000);
+
+            this.showMessage('Playwright test script downloaded successfully!', 'success');
+        }, 2000);
+    }
+
+    handleEditAction() {
+        const editBtn = document.getElementById('editBtn');
+        const editStatus = document.getElementById('editStatus');
+
+        // Animate button
+        editBtn.classList.add('active');
+        setTimeout(() => editBtn.classList.remove('active'), 500);
+
+        // Update status
+        editStatus.textContent = 'Opening editor interface...';
+        editStatus.classList.add('processing');
+
+        // Simulate editor opening
+        setTimeout(() => {
+            editStatus.textContent = 'Editor interface opened - Input fields available for modification';
+            editStatus.classList.remove('processing');
+            editStatus.classList.add('active');
+
+            setTimeout(() => {
+                editStatus.textContent = 'Editor ready for modifications';
+                editStatus.classList.remove('active');
+            }, 4000);
+
+            this.showMessage('Editor interface opened. You can now modify input fields and test parameters.', 'info');
+        }, 1500);
+    }
+
     simulateOperationTracking() {
         const operations = [
             'Click element detected',
@@ -232,13 +256,18 @@ class ActionTrackerDemo {
         }, 2000);
     }
 
-    simulateAIGeneration(statusElement) {
+    simulateGenerateAndRun(statusElement) {
         const steps = [
             'Analyzing XPath patterns...',
             'Optimizing element selectors...',
             'Generating TypeScript code...',
             'Adding assertions and validations...',
-            'Finalizing test structure...'
+            'Finalizing test structure...',
+            'Initializing Playwright environment...',
+            'Starting browser instances...',
+            'Executing test scenarios...',
+            'Validating assertions...',
+            'Generating test reports...'
         ];
 
         let stepIndex = 0;
@@ -247,23 +276,30 @@ class ActionTrackerDemo {
             if (stepIndex < steps.length) {
                 statusElement.textContent = steps[stepIndex];
                 stepIndex++;
+                
+                // Update generated test count after generation phase
+                if (stepIndex === 5) {
+                    this.generatedTestsCount = Math.ceil(this.operationsCount / 3);
+                }
             } else {
                 clearInterval(interval);
                 this.isProcessing = false;
-                this.generatedTestsCount = Math.ceil(this.operationsCount / 3);
                 
-                statusElement.textContent = `Generated ${this.generatedTestsCount} Playwright test cases successfully!`;
+                const passedTests = Math.floor(this.generatedTestsCount * 0.85);
+                const failedTests = this.generatedTestsCount - passedTests;
+                
+                statusElement.textContent = `Generated ${this.generatedTestsCount} tests and executed: ${passedTests} passed, ${failedTests} failed`;
                 statusElement.classList.remove('processing');
                 statusElement.classList.add('active');
 
-                // Show code upload simulation
                 setTimeout(() => {
-                    statusElement.textContent = 'Test files uploaded and ready for execution';
-                }, 2000);
+                    statusElement.textContent = 'Ready to generate and execute test code';
+                    statusElement.classList.remove('active');
+                }, 5000);
 
-                this.showMessage(`Successfully generated ${this.generatedTestsCount} test cases from ${this.operationsCount} operations.`, 'success');
+                this.showMessage(`Successfully generated and executed ${this.generatedTestsCount} test cases. ${passedTests} passed, ${failedTests} failed.`, 'success');
             }
-        }, 1500);
+        }, 1200);
     }
 
     simulateTestExecution(statusElement) {
@@ -305,9 +341,10 @@ class ActionTrackerDemo {
         const statusElements = [
             { id: 'playStatus', text: 'Ready to track operations' },
             { id: 'stopStatus', text: 'Tracking session inactive' },
-            { id: 'generateStatus', text: 'Ready to generate test code' },
-            { id: 'runStatus', text: 'Test environment ready' },
-            { id: 'clearStatus', text: 'Session data preserved' }
+            { id: 'generateRunStatus', text: 'Ready to generate and execute test code' },
+            { id: 'clearStatus', text: 'Session data preserved' },
+            { id: 'downloadStatus', text: 'Script ready for download' },
+            { id: 'editStatus', text: 'Editor ready for modifications' }
         ];
 
         statusElements.forEach(({ id, text }) => {
@@ -315,6 +352,72 @@ class ActionTrackerDemo {
             element.textContent = text;
             element.classList.remove('active', 'processing');
         });
+    }
+
+    generateSampleTestScript() {
+        return `import { test, expect } from '@playwright/test';
+
+// Generated by Action Tracker - ${new Date().toLocaleString()}
+// Test cases: ${this.generatedTestsCount} | Operations tracked: ${this.operationsCount}
+
+test.describe('Action Tracker Generated Tests', () => {
+  
+  test.beforeEach(async ({ page }) => {
+    await page.goto('https://example.com');
+  });
+
+  // Positive Test Scenarios
+  test('should perform user actions successfully', async ({ page }) => {
+    // Generated locators from tracked actions
+    const loginButton = page.locator('[data-testid="login-btn"]');
+    const usernameField = page.locator('#username');
+    const passwordField = page.locator('#password');
+    
+    // Positive scenario: Valid login
+    await usernameField.fill('valid_user@example.com');
+    await passwordField.fill('validPassword123');
+    await loginButton.click();
+    
+    await expect(page.locator('.dashboard')).toBeVisible();
+  });
+
+  // Negative Test Scenarios
+  test('should handle invalid inputs gracefully', async ({ page }) => {
+    const loginButton = page.locator('[data-testid="login-btn"]');
+    const usernameField = page.locator('#username');
+    const passwordField = page.locator('#password');
+    
+    // Negative scenario: Empty fields
+    await loginButton.click();
+    await expect(page.locator('.error-message')).toContainText('Please fill in all fields');
+    
+    // Negative scenario: Invalid credentials
+    await usernameField.fill('invalid@example.com');
+    await passwordField.fill('wrongpassword');
+    await loginButton.click();
+    await expect(page.locator('.error-message')).toContainText('Invalid credentials');
+  });
+
+  test('should validate form inputs', async ({ page }) => {
+    const emailField = page.locator('#email');
+    const submitBtn = page.locator('[type="submit"]');
+    
+    // Test invalid email format
+    await emailField.fill('invalid-email');
+    await submitBtn.click();
+    await expect(page.locator('.validation-error')).toContainText('Please enter a valid email');
+  });
+});
+
+// Additional utility functions
+async function waitForElement(page, selector) {
+  await page.waitForSelector(selector, { timeout: 10000 });
+}
+
+async function takeScreenshot(page, name) {
+  await page.screenshot({ path: \`screenshots/\${name}.png\` });
+}
+`;
     }
 
     showMessage(message, type = 'info') {
@@ -447,10 +550,7 @@ document.addEventListener('keydown', (e) => {
             document.getElementById('stopBtn').click();
             break;
         case 'g':
-            document.getElementById('generateBtn').click();
-            break;
-        case 'r':
-            document.getElementById('runBtn').click();
+            document.getElementById('generateRunBtn').click();
             break;
         case 'c':
             document.getElementById('clearBtn').click();

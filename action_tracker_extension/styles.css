@@ -309,24 +309,14 @@ code {
     box-shadow: 0 8px 25px rgba(245, 101, 101, 0.4);
 }
 
-.generate-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.generate-run-btn {
+    background: linear-gradient(135deg, #667eea 0%, #ed8936 50%, #764ba2 100%);
     color: white;
 }
 
-.generate-btn:hover {
+.generate-run-btn:hover {
     transform: scale(1.1);
     box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-}
-
-.run-btn {
-    background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
-    color: white;
-}
-
-.run-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 8px 25px rgba(237, 137, 54, 0.4);
 }
 
 .clear-btn {
@@ -337,6 +327,26 @@ code {
 .clear-btn:hover {
     transform: scale(1.1);
     box-shadow: 0 8px 25px rgba(113, 128, 150, 0.4);
+}
+
+.download-btn {
+    background: linear-gradient(135deg, #38b2ac 0%, #319795 100%);
+    color: white;
+}
+
+.download-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 25px rgba(56, 178, 172, 0.4);
+}
+
+.edit-btn {
+    background: linear-gradient(135deg, #d69e2e 0%, #b7791f 100%);
+    color: white;
+}
+
+.edit-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 25px rgba(214, 158, 46, 0.4);
 }
 
 .control-card h4 {
@@ -466,43 +476,6 @@ code {
     color: white;
     margin: 40px -20px -20px;
     border-radius: 0 0 20px 20px;
-}
-
-/* Button Styles */
-.at-btn {
-    background: linear-gradient(135deg, rgb(102,126,234) 0%, #764ba2 100%);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 0;
-    font-size: 1rem;
-    font-family: 'Inter', Arial, sans-serif;
-    font-weight: 600;
-    margin: 6px 0;
-    width: 100%;
-    box-shadow: 0 2px 8px rgba(102,126,234,0.08);
-    cursor: pointer;
-    transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
-    outline: none;
-}
-
-.at-btn:hover, .at-btn:focus {
-    background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
-    box-shadow: 0 4px 16px rgba(102,126,234,0.18);
-    transform: translateY(-2px) scale(1.03);
-}
-
-.at-btn-secondary {
-    background: #fff;
-    color: rgb(102,126,234);
-    border: 1.5px solid rgb(102,126,234);
-    font-weight: 600;
-}
-
-.at-btn-secondary:hover, .at-btn-secondary:focus {
-    background: rgba(102,126,234,0.08);
-    color: #222;
-    border-color: #5a67d8;
 }
 
 /* Responsive Design */
