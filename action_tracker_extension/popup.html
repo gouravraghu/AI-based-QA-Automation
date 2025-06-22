@@ -1,27 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Action Tracker</title>
-    <style>
-        body {
-            width: 220px;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 10px;
-        }
-        button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 10px;
-            cursor: pointer;
-            width: 100%;
-            margin: 5px 0;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-    </style>
+  <title>Action Tracker</title>
+  <style>
+    body {
+      width: 240px;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 10px;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 8px;
+      cursor: pointer;
+      width: 100%;
+      margin: 5px 0;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #editPopup {
+      background: #f9f9f9;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-top: 10px;
+      max-height: 300px;
+      overflow-y: auto;
+      display: none;
+      text-align: left;
+    }
+    .edit-block {
+      border: 1px solid #ddd;
+      padding: 5px;
+      margin-bottom: 10px;
+    }
+  </style>
 </head>
 <body>
     <h3>Action Tracker</h3>
@@ -29,6 +44,7 @@
     <button id="download">Generate Script</button>
     <button id="clear">Clear Logs</button>
     <div id="progress" style="margin-top:10px; color:#333; font-size:13px; min-height:18px;"></div>
+    <button id="edit">Edit Logs</button>
     <script src="popup.js"></script>
 </body>
 </html>

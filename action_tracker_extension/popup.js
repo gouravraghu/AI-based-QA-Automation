@@ -70,3 +70,12 @@ downloadScriptBtn.addEventListener('click', () => {
             console.error(err);
         });
 });
+
+document.getElementById("edit")?.addEventListener("click", () => {
+    chrome.windows.create({
+      url: "edit.html",
+      type: "popup",
+      width: 400,
+      height: 600
+  });
+});
