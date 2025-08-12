@@ -5,12 +5,15 @@ const { execSync } = require('child_process');
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const speakeasy = require('speakeasy');
 
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN; // Loaded from .env
-const GITHUB_USERNAME = 'hjain27';
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const GITHUB_USERNAME = 'monikatrivediinfobeans';
 const FILENAME = 'user_actions.txt';
 const FILE_PATH = `./${FILENAME}`;
 const apiKey = process.env.API_KEY;
+const MFA_SECRET = process.env.MFA_SECRET; 
+const TIMEOUT = process.env.Timeout ? parseInt(process.env.Timeout) : 30000;
 
 async function uploadToGist() {
   const fileContent = fs.readFileSync(FILE_PATH, 'utf8');
@@ -30,185 +33,207 @@ async function uploadToGist() {
       }
     }
   );
-  return response.data.id; // Gist ID
+  console.log('✅ Gist created:', response.data.html_url);
+  return response.data.id;
+}
+
+// ✅ String cleanup helper
+function cleanGeneratedCode(code) {
+  return code
+    .split('\n')
+    .filter(line => {
+      if (/^\s*```/.test(line)) return false;
+      if (/^\s*Output only valid/.test(line)) return false;
+      if (/^\s*SCRIPT:/.test(line)) return false;
+      if (/^[A-Z ]+:$/.test(line)) return false;
+      return true;
+    })
+    .join('\n')
+    .trim();
+}
+
+async function regenerateWithFeedback(originalPrompt, apiKey) {
+  const feedback = `
+The previous output did not follow the required structure. Please generate code that:
+1. Has exactly one describe block
+2. Includes both 'Positive Scenario' test cases
+3. Uses CommonJS import
+4. No markdown or explanations
+5. Wraps interactions in try/catch with assertions
+6. Make sure not need to click on any input field without first checking visibility and only fill data if the field is visible
+7. Do not fill 'Empty' in any input field
+`;
+
+  const retryResponse = await axios.post(
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey,
+    {
+      contents: [{ role: 'user', parts: [{ text: originalPrompt + '\n\nFEEDBACK:\n' + feedback }] }],
+      generationConfig: {
+        temperature: 0.05,
+        topK: 1,
+        topP: 0.7,
+        maxOutputTokens: 4000,
+        candidateCount: 1
+      }
+    },
+    { headers: { 'Content-Type': 'application/json' } }
+  );
+
+  let retryCode = retryResponse.data.candidates?.[0]?.content?.parts?.[0]?.text;
+  return cleanGeneratedCode(retryCode || '');
 }
 
 async function runAutomationWithGist(gistId, landingUrl) {
   const gistRawUrl = `https://gist.githubusercontent.com/${GITHUB_USERNAME}/${gistId}/raw/${FILENAME}`;
+
   try {
     const gistResponse = await axios.get(gistRawUrl);
     const userActions = gistResponse.data;
-    const prompt = `,
-You are an expert QA engineer. Your task is to convert the following user action script (which uses XPath locators) into a fully functional Playwright test file in TypeScript. The generated test must adhere to these requirements:
 
-### Test Case Structure
-1. Write test cases step-by-step based on the user actions provided.
-2. Include both **positive** and **negative** scenarios for each step.
-3. Clearly separate each step with comments (e.g., "// Step 1: Login").
-4. For negative scenarios, simulate invalid inputs or unexpected conditions and verify proper error handling.
+    if (typeof userActions !== 'string') {
+      throw new Error('userActions must be a string.');
+    }
 
-### Requirements
+    if (typeof landingUrl !== 'string' || !landingUrl.startsWith('http')) {
+      throw new Error('Invalid landing URL.');
+    }
+
+    console.log('✅ Landing URL:', landingUrl);
+    console.log('✅ User Actions:\n', userActions);
+
+    const prompt = `You are an expert QA engineer specializing in Playwright test automation. Your task is to generate a fully functional Playwright test file in TypeScript for a website, based on a provided user action script that uses XPath locators. The generated test must meet the following requirements and be generic enough to work for any website.
+Test Case Structure
+
+Generate step-by-step test cases based on **only** the provided user actions.
+Create positive test cases to verify successful execution of each step (e.g., valid login, successful navigation).
+Create negative test cases to verify failure scenarios (e.g., invalid inputs, missing required fields, incorrect MFA codes).
+Group positive and negative test cases in separate test.describe blocks with clear names (e.g., "Positive Scenarios" and "Negative Scenarios").
+Include comments to separate each step within test cases. Do not fill 'Empty' in any input field.
+
+Requirements
+
 Use CommonJS require() syntax for all imports (e.g., const { test, expect } = require('@playwright/test')). Do not use ES module import statements.
+Use TypeScript for type safety and maintain clean, modular code.
 
-### Navigation & Setup
-Start by navigating to:
-  “${landingUrl}”
-After each navigation or reload, use:
-  \await page.waitForLoadState("networkidle")\
+Navigation & Setup
 
-### Element Selection & Waiting
-Use only XPath selectors with Playwright’s syntax:
-  \page.locator("xpath=YOUR_XPATH_HERE")\
-Before interacting, always wait with timeouts:
-  \await locator.waitFor({ state: "visible", timeout: 10000 })\
-Use \toBeVisible({ timeout: 10000 })\, \toBeEnabled()\, or \toHaveText()\ for all verifications.
+Start by navigating to the provided landing URL: ${landingUrl} (treat ${landingUrl} as a placeholder for the website’s URL).
+After each navigation or page reload, use: await page.waitForLoadState("networkidle").
+Allow the landing URL to be configurable via an environment variable or input parameter.
 
-### Assertions & Failure Handling
-After each action, assert the expected outcome using Playwright \expect()\.
-If an expectation fails, the test must throw a clear error.
-Surround each major step in try/catch, log errors with \console.error()\, and rethrow to fail the test.
+Element Selection & Waiting
 
-### Modularity & Logging
-Encapsulate repeated logic (e.g., login, wait-and-click) in reusable helper functions.
-Add \console.log()\ before and after each helper function to trace execution.
+Use only XPath selectors with Playwright’s syntax: page.locator("xpath=YOUR_XPATH_HERE").
+Define a constant timeout value at the top of the test file: ${TIMEOUT}.
+For input fields:
+Confirm visibility with expect(locator).toBeVisible({ timeout: ${TIMEOUT} }).
+Immediately fill the field using await locator.fill(text). Never click input fields before filling.
+For required fields, detect "required" validation messages (e.g., "This field is required") and create negative test cases:
+Test empty input submission to verify the validation message appears.
+Test invalid data (e.g., invalid email format, short password) to verify appropriate error messages.
 
-### Post-Login Verification
-Verify successful login by checking for a dashboard or user profile element via XPath and \expect(...).toBeVisible()\.
 
-### Negative Scenarios
-For each step, include at least one negative scenario:
-  - Example: For login, test with invalid credentials and verify the error message.
-  - Example: For form submission, test with missing or invalid inputs.
 
-### Output
-Output only the executable Playwright test file (imports, fixtures, helper functions, and test body).
-Do not include plain-language comments or steps, only code.
+
+For buttons, dropdowns, and other clickable elements:
+Confirm visibility with expect(locator).toBeVisible({ timeout: ${TIMEOUT} }).
+Click using await locator.click().
+Only select the values from dropdowns based on the user selection.
+
+
+Use toBeEnabled() or toHaveText() for additional verifications as needed.
+
+MFA Handling
+
+After login, check if Multi-Factor Authentication (MFA) is required:
+Detect if the page prompts for a 6-digit MFA code using an XPath locator for the MFA input field.
+If MFA is required:
+Use the speakeasy package to generate a Time-based One-Time Password (TOTP) using the secret: ${MFA_SECRET}.
+Locate the MFA input field using its XPath, confirm visibility with expect(locator).toBeVisible({ timeout: ${TIMEOUT} }), and fill it with the generated code using await locator.fill(code). Do not click the input field before filling.
+Locate and main block titled "Positive Scenarios" and one titled "Negative Scenarios" to group related tests.
+
+
+
+
+Include comments to separate each step within test cases.
+
+Output
+
+Output only the executable Playwright test file (imports, fixtures, helper functions, and test body) in TypeScript.
+Do not include plain-language comments or steps outside the code.
+Ensure the test file is generic and can be adapted to any website by using placeholders for URLs, XPath selectors, and user inputs.
+Use meaningful test names and group related tests under test.describe blocks with exactly one main test.describe block containing two nested test.describe blocks: "Positive Scenarios" and "Negative Scenarios".
 
 SCRIPT:
 ${userActions}`;
-    // console.log("Prompt fetched from Gist:", userActions);
-    // Step 2: Call Gemini API
+
     const response = await axios.post(
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey,
       {
-        contents: [
-          {
-            parts: [
-              { text: prompt }
-            ]
-          }
-        ]
-      },
-      {
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
-    // Gemini returns a nested response; extract the generated text
-    let testCode = response.data.candidates?.[0]?.content?.parts?.[0]?.text;
-   // console.log("Generated test code:", testCode);
-    if (!testCode) {
-      throw new Error("No code was returned by Gemini API.");
-    }
-    // Remove any lines that are not valid JavaScript (e.g., code fences, markdown, or plain text)
-    testCode = testCode.split('\n').filter(line => {
-      // Remove markdown code fences and lines that are not code
-      if (/^\s*```/.test(line)) return false;
-      if (/^\s*Output only valid/.test(line)) return false;
-      if (/^\s*Below is the user flow/.test(line)) return false;
-      if (/^\s*SCRIPT:/.test(line)) return false;
-      if (/^[A-Z ]+:$/.test(line)) return false;
-      // Remove lines that are just plain text or headings
-      if (/^[^a-zA-Z0-9]*$/.test(line)) return false;
-      if (/^[^\w]*[A-Z][a-z ]+\.?$/.test(line) && !/require|test|expect|function|let|const|var|async|await|page|describe|beforeAll|afterAll|catch|try|console/.test(line)) return false;
-      // Remove lines that contain only a single period or are just punctuation
-      if (/^\s*[.]+\s*$/.test(line)) return false;
-      // Remove lines that contain only a single word or are suspiciously short (likely not code)
-      if (/^\s*\w{1,3}\s*$/.test(line)) return false;
-      // Remove lines that are just a single or double quote
-      if (/^\s*['"]\s*$/.test(line)) return false;
-      // Remove lines that are just a single or double quote with a period
-      if (/^\s*['"][.]\s*$/.test(line)) return false;
-      return true;
-    }).join('\n');
-    // Step 3: Validate and fix generated code for Playwright
-    let fixedTestCode = testCode;
-    // Only remove markdown/code fences, not code structure
-    fixedTestCode = fixedTestCode
-      .split('\n')
-      .filter(line => !/^\s*```/.test(line.trim()))
-      .join('\n');
-
-    // --- Custom: Detect method boundary errors ---
-    const methodPattern = /^(\s*)(async\s+)?[a-zA-Z0-9_]+\s*\(/;
-    const lines = fixedTestCode.split('\n');
-    let methodError = false;
-    for (let i = 1; i < lines.length; i++) {
-      if (methodPattern.test(lines[i]) && lines[i-1] && !lines[i-1].trim().endsWith('}')) {
-        methodError = true;
-       // console.error(`Possible missing closing brace before: ${lines[i]}`);
-      }
-    }
-    if (methodError) {
-      // Compose a feedback message for Gemini
-      const feedback = `The previous code output is invalid. Some class methods or test blocks are missing closing braces (}). Please regenerate the code and ensure every method, class, and test block is properly closed, following the example provided. Output only valid, executable Playwright JavaScript code with all braces and parentheses balanced. Do NOT output markdown, comments, or explanations—only code.`;
-      // Re-call Gemini with feedback
-      const retryResponse = await axios.post(
-        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey,
-        {
-          contents: [
-            { parts: [ { text: prompt + '\n\nFEEDBACK:\n' + feedback } ] }
-          ]
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.1,
+          topK: 1,
+          topP: 0.8,
+          maxOutputTokens: 4000,
+          candidateCount: 1
         },
-        { headers: { 'Content-Type': 'application/json' } }
-      );
-      let retryTestCode = retryResponse.data.candidates?.[0]?.content?.parts?.[0]?.text;
-      retryTestCode = retryTestCode.split('\n').filter(line => !/^\s*```/.test(line.trim())).join('\n');
-      fixedTestCode = retryTestCode;
-    }
-    // --- End custom ---
+        safetySettings: [{ category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }]
+      },
+      { headers: { 'Content-Type': 'application/json' } }
+    );
 
-    // Auto-balance braces if needed
+    let testCode = response.data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!testCode) throw new Error("No test code generated.");
+
+    let fixedTestCode = cleanGeneratedCode(testCode);
+
+    // Auto-balance braces and validate syntax
     const openBraces = (fixedTestCode.match(/\{/g) || []).length;
     const closeBraces = (fixedTestCode.match(/\}/g) || []).length;
     if (openBraces > closeBraces) {
       const missing = openBraces - closeBraces;
       fixedTestCode += '\n' + Array(missing).fill('}').join('\n');
-      console.warn(`Auto-added ${missing} closing brace(s) to balance the code.`);
-    } else if (closeBraces > openBraces) {
-      console.warn('Warning: More closing braces than opening braces in generated code.');
+      console.warn(`🛠️ Auto-added ${missing} closing brace(s).`);
     }
+
     try {
       new Function(fixedTestCode);
-    } catch (syntaxError) {
-      console.error("Syntax error in generated code:\n", syntaxError.message);
-      fs.writeFileSync('./tests/generated.spec.ts', fixedTestCode);
-      return;
+    } catch (err) {
+      console.error("❌ Syntax error in generated code:", err.message);
+      fixedTestCode = await regenerateWithFeedback(prompt, apiKey);
     }
+
+    if (!fixedTestCode || fixedTestCode.length < 50) {
+      throw new Error("Generated code too short or invalid.");
+    }
+
     fs.writeFileSync('./tests/generated.spec.ts', fixedTestCode);
-    //console.log("Test code written to ./tests/generated.spec.ts");
-    let testFailed = false;
+    console.log("✅ Test written to ./tests/generated.spec.ts");
+
     try {
       execSync('npx playwright test --headed', { stdio: 'inherit' });
     } catch (err) {
-      testFailed = true;
-      console.error('Playwright tests failed:', err.message);
+      console.error('❌ Playwright test failed:', err.message);
     }
+
     const reportPath = path.join(__dirname, 'playwright-report');
     if (fs.existsSync(reportPath)) {
-      try {
-        execSync('npx playwright show-report', { stdio: 'inherit' });
-      } catch (err) {
-        console.error('Failed to open Playwright report:', err.message);
-      }
+      execSync('npx playwright show-report', { stdio: 'inherit' });
     } else {
-      console.error('No Playwright report found.');
+      console.warn('⚠️ No report found.');
     }
-  } catch (error) {
-    console.error('Automation failed:', error.message);
+
+  } catch (err) {
+    console.error('❌ Automation failed:', err.message);
+  } finally {
+    console.log('🛑 Closing server...');
+    process.exit(0); // Gracefully stop the server
   }
 }
 
-// Minimal Express server to keep the service alive for Render.com
+// ✅ Express Setup
 const app = express();
 const PORT = process.env.PORT || 10000;
 
@@ -216,38 +241,34 @@ app.use(cors());
 app.use(express.json());
 app.use('/report', express.static(path.join(__dirname, 'playwright-report')));
 
-// Endpoint to upload file and run automation
+// ✅ Upload and run automation
 app.post('/upload-and-run', async (req, res) => {
-   // Enable Node.js debugging here
-  // console.log('DEBUG /upload-and-run:', {
-  //   body: req.body,
-  //   actions: req.body.actions,
-  //   landingUrl: req.body.landingUrl
-  // });
   try {
-    let actions = req.body.actions;
-    let landingUrl = req.body.landingUrl; // Get landingUrl from request
-  
-    if (Array.isArray(actions) && actions.length > 0) {
-      fs.writeFileSync(FILE_PATH, actions.join('\n'), 'utf8');
+    const { actions, landingUrl } = req.body;
+
+    if (!Array.isArray(actions) || actions.length === 0) {
+      throw new Error("Missing or invalid 'actions'");
     }
+    if (typeof landingUrl !== 'string') {
+      throw new Error("Missing or invalid 'landingUrl'");
+    }
+
+    fs.writeFileSync(FILE_PATH, actions.join('\n'), 'utf8');
     const gistId = await uploadToGist();
-    await runAutomationWithGist(gistId, landingUrl); // Pass landingUrl
+    await runAutomationWithGist(gistId, landingUrl);
     res.json({ success: true, gistId, reportUrl: '/report' });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// Endpoint to download the generated Playwright test script
+// ✅ Download generated test
 app.get('/download-generated-spec', (req, res) => {
   const file = path.join(__dirname, 'tests', 'generated.spec.ts');
-  res.download(file, 'generated.spec.ts', (err) => {
-    if (err) {
-      res.status(500).send('Error downloading the file.');
-    }
+  res.download(file, 'generated.spec.ts', err => {
+    if (err) res.status(500).send('Download failed.');
   });
 });
 
-app.get('/', (req, res) => res.send('Playwright automation running!'));
-app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
+app.get('/', (req, res) => res.send('✅ Playwright automation running'));
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
