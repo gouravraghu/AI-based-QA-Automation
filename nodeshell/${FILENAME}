@@ -1,0 +1,24 @@
+Entered text 'Empty' in field | XPath: //*[@id="Username"]
+Clicked on 'Register' | XPath: /html[1]/body[1]/div[1]/div[1]/div[1]/centre[1]/div[3]/div[1]/div[1]/form[1]/button[2]
+Clicked on 'Contact Support' | XPath: /html[1]/body[1]/app-root[1]/div[1]/app-user-registration[1]/div[1]/mat-card[1]/div[3]/a[1]
+Clicked on 'Submit' | XPath: /html[1]/body[1]/app-root[1]/div[1]/app-support[1]/mat-card[1]/form[1]/div[2]/button[1]/span[2]
+❌ Field 'Party ID' | XPath: //*[@id="mat-input-2"] | Message: "Please fill out this field."
+❌ Field 'Email' | XPath: //*[@id="mat-input-3"] | Message: "Please fill out this field."
+❌ Field 'Agent Id' | XPath: //*[@id="mat-input-4"] | Message: "Please fill out this field."
+❌ Field 'Last Name ' | XPath: //*[@id="mat-input-6"] | Message: "Please fill out this field."
+❌ Field 'Query' | XPath: //*[@id="mat-input-7"] | Message: "Please fill out this field."
+❌ Field 'Enter security code' | XPath: //*[@id="mat-input-8"] | Message: "Please fill out this field."
+❌ Error Message (no input found) | XPath: /html[1]/body[1]/app-root[1]/div[1]/app-support[1]/mat-card[1]/form[1]/mat-form-field[1]/div[2]/div[1] | Message: "Party ID is required"
+❌ Error Message (no input found) | XPath: //*[@id="mat-mdc-error-2"] | Message: "Party ID is required"
+❌ Error Message (no input found) | XPath: /html[1]/body[1]/app-root[1]/div[1]/app-support[1]/mat-card[1]/form[1]/mat-form-field[2]/div[2]/div[1] | Message: "Email is required"
+❌ Error Message (no input found) | XPath: //*[@id="mat-mdc-error-3"] | Message: "Email is required"
+❌ Error Message (no input found) | XPath: /html[1]/body[1]/app-root[1]/div[1]/app-support[1]/mat-card[1]/form[1]/mat-form-field[3]/div[2]/div[1] | Message: "Agent ID is required"
+❌ Error Message (no input found) | XPath: //*[@id="mat-mdc-error-4"] | Message: "Agent ID is required"
+❌ Error Message (no input found) | XPath: /html[1]/body[1]/app-root[1]/div[1]/app-support[1]/mat-card[1]/form[1]/mat-form-field[5]/div[2]/div[1] | Message: "Last Name is required"
+❌ Error Message (no input found) | XPath: //*[@id="mat-mdc-error-5"] | Message: "Last Name is required"
+❌ Error Message (no input found) | XPath: /html[1]/body[1]/app-root[1]/div[1]/app-support[1]/mat-card[1]/form[1]/mat-form-field[6]/div[2]/div[1] | Message: "Query is required"
+❌ Error Message (no input found) | XPath: //*[@id="mat-mdc-error-6"] | Message: "Query is required"
+❌ Error Message (no input found) | XPath: /html[1]/body[1]/app-root[1]/div[1]/app-support[1]/mat-card[1]/form[1]/mat-form-field[7]/div[2]/div[1] | Message: "Security code is required"
+❌ Error Message (no input found) | XPath: //*[@id="mat-mdc-error-7"] | Message: "Security code is required"
+❌ Error Message (no input found) | XPath: /html[1]/body[1]/div[2]/div[1]/div[1]/mat-snack-bar-container[1] | Message: "Error: Highlighted fields are required or invalid
+Close"
